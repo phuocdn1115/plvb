@@ -30,6 +30,16 @@ class LabelModel(LabelBase):
     class Config:
         orm_mode = True
         
+class UserBase(BaseModel):
+    username: str
+    password: str
+
+class UserModel(UserBase):
+    id: int
+    
+    class Config:
+        orm_mode = True
+        
 def get_db():
     db = SessionLocal()
     try:
@@ -53,3 +63,11 @@ async def create_label(label: LabelBase, db: db_dependency):
 async def get_label(db: db_dependency):
     query = db.query(models.Label).offset(0).limit(100).all()
     return query
+
+@myapp.post("/user/", response_model= UserModel)
+async def create_user(user: UserBase, db: db_dependency):
+    db_label = models.User(**user.model_dump())
+    db.add(db_label)
+    db.commit()
+    db.refresh(db_label)
+    return db_label
